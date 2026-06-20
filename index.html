@@ -401,6 +401,7 @@
     border-radius: 100px;
     transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
   }
+  .head-btn svg { width: 13px; height: 13px; }
   .head-btn:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.35); color: var(--t1); }
   .head-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .head-btn[hidden] { display: none; }
@@ -874,6 +875,190 @@
   }
 
   /* ====================================================================== */
+  /* settings overlay                                                       */
+  /* ====================================================================== */
+
+  .sx {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+  .sx[hidden] { display: none; }
+  .sx-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: kxFade 0.25s ease;
+  }
+  .sx-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(560px, 100%);
+    max-height: min(88vh, 860px);
+    background: #0a0a0c;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9);
+    animation: kxRise 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .sx-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .sx-title h3 { font-family: var(--display); font-weight: 400; font-size: 26px; color: #fff; line-height: 1; }
+  .sx-sub { display: block; margin-top: 7px; font-size: 12.5px; color: var(--t3); }
+  .sx-body { overflow-y: auto; padding: 6px 22px 4px; }
+
+  .sx-note {
+    display: flex;
+    gap: 11px;
+    margin: 16px 0 4px;
+    padding: 13px 15px;
+    background: rgba(255, 205, 107, 0.06);
+    border: 1px solid rgba(255, 205, 107, 0.22);
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--t2);
+  }
+  .sx-note svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; color: var(--warn); }
+  .sx-note b { color: var(--t1); font-weight: 600; }
+  .sx code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 0 4px;
+  }
+
+  .sx-section {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--t3);
+    margin: 24px 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .sx-section::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+  .sx-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 100px;
+    border: 1px solid var(--line);
+  }
+  .sx-tag.live { color: var(--ok); border-color: rgba(100, 255, 160, 0.3); }
+  .sx-tag.demo { color: var(--warn); border-color: rgba(255, 205, 107, 0.3); }
+
+  .sx-row { padding: 16px 0; border-bottom: 1px solid var(--line-soft); }
+  .sx-row:last-child { border-bottom: 0; }
+  .sx-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .sx-row-name { font-size: 14px; font-weight: 500; color: var(--t1); }
+  .sx-row-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 2px 9px;
+    min-width: 56px;
+    text-align: center;
+  }
+  .sx-row-desc { font-size: 12.5px; line-height: 1.55; color: var(--t2); font-weight: 300; margin: 7px 0 13px; }
+  .sx-row.illustrative .sx-row-name { color: var(--t2); }
+
+  input[type="range"].sx-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 100px;
+    background: var(--line);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"].sx-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 0;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s ease;
+  }
+  input[type="range"].sx-range::-webkit-slider-thumb:active { transform: scale(1.18); }
+  input[type="range"].sx-range::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 0;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  }
+  .sx-range.illustrative { opacity: 0.85; }
+  .sx-range.illustrative::-webkit-slider-thumb { background: var(--warn); }
+  .sx-range.illustrative::-moz-range-thumb { background: var(--warn); }
+  .sx-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 7px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--t4);
+  }
+
+  .sx-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 22px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .sx-reset {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--t2);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 9px 16px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .sx-reset:hover { color: var(--t1); border-color: rgba(255, 255, 255, 0.35); }
+  .sx-done { background: #fff; color: #000; border-radius: 100px; padding: 9px 22px; font-size: 13px; font-weight: 500; transition: opacity 0.2s ease; }
+  .sx-done:hover { opacity: 0.86; }
+
+  .sx-body::-webkit-scrollbar { width: 10px; }
+  .sx-body::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid #0a0a0c; border-radius: 10px; }
+
+  @media (max-width: 760px) {
+    .sx { padding: 0; }
+    .sx-panel { width: 100%; height: 100%; max-height: none; border-radius: 0; border: 0; }
+  }
+
+  /* ====================================================================== */
   /* entrance + keyframes                                                   */
   /* ====================================================================== */
 
@@ -994,6 +1179,10 @@
         <div class="chat-head-actions">
           <button class="head-btn solid" id="headLoadBtn" type="button">Load model</button>
           <button class="head-btn" id="kernelsBtn" type="button" hidden>View Kernels</button>
+          <button class="head-btn" id="settingsBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </button>
           <button class="head-btn" id="clearBtn" type="button" disabled>Clear</button>
         </div>
       </div>
@@ -1081,6 +1270,101 @@
     </div>
   </div>
 
+  <!-- ============ SETTINGS OVERLAY ============ -->
+  <div class="sx" id="settingsOverlay" hidden>
+    <div class="sx-backdrop" data-close></div>
+    <div class="sx-panel" role="dialog" aria-modal="true" aria-label="Generation settings">
+      <div class="sx-head">
+        <div class="sx-title">
+          <h3>Generation settings</h3>
+          <span class="sx-sub">Tune how the model produces each reply — and learn what the knobs do.</span>
+        </div>
+        <button class="kx-close" id="sxClose" type="button" aria-label="Close" data-close>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="sx-body">
+        <!-- Live, fully-wired control -->
+        <div class="sx-section">Active <span class="sx-tag live">applies live</span></div>
+
+        <div class="sx-row">
+          <div class="sx-row-head">
+            <span class="sx-row-name">Max new tokens</span>
+            <span class="sx-row-val" id="sxMaxVal">1024</span>
+          </div>
+          <p class="sx-row-desc">
+            The longest reply the model may generate, measured in <b>tokens</b> (≈ ¾ of a word each).
+            Generation also stops early at an end-of-turn token. Lower values give shorter, faster answers;
+            higher values allow long-form responses but take more time.
+          </p>
+          <input class="sx-range" id="sxMaxTokens" type="range" min="64" max="4096" step="64" value="1024" />
+          <div class="sx-scale"><span>64</span><span>2048</span><span>4096</span></div>
+        </div>
+
+        <!-- Educational / illustrative controls -->
+        <div class="sx-section">Sampling <span class="sx-tag demo">for learning</span></div>
+
+        <div class="sx-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>
+            This in-browser build of Gemma&nbsp;4 decodes <b>greedily</b> — every step it picks the single
+            highest-probability token (an <code>argmax</code> GPU kernel), so output is deterministic.
+            The sliders below are <b>illustrative</b>: they explain real sampling parameters but don't
+            change this model's replies.
+          </span>
+        </div>
+
+        <div class="sx-row illustrative">
+          <div class="sx-row-head">
+            <span class="sx-row-name">Temperature</span>
+            <span class="sx-row-val" id="sxTempVal">1.00</span>
+          </div>
+          <p class="sx-row-desc">
+            Scales the logits before sampling. <b>Low</b> (→&nbsp;0) makes the model confident and repetitive —
+            approaching the greedy decoding used here. <b>High</b> (→&nbsp;2) flattens the distribution for more
+            surprising, creative, sometimes incoherent text. <b>1.0</b> leaves the probabilities unchanged.
+          </p>
+          <input class="sx-range illustrative" id="sxTemp" type="range" min="0" max="2" step="0.05" value="1" />
+          <div class="sx-scale"><span>0 · greedy</span><span>1.0</span><span>2.0 · wild</span></div>
+        </div>
+
+        <div class="sx-row illustrative">
+          <div class="sx-row-head">
+            <span class="sx-row-name">Top-P (nucleus)</span>
+            <span class="sx-row-val" id="sxTopPVal">0.95</span>
+          </div>
+          <p class="sx-row-desc">
+            Samples only from the smallest set of tokens whose probabilities sum to <b>P</b>, discarding the
+            unlikely tail. <b>1.0</b> considers every token; <b>0.9</b> keeps just the most probable ~90% of the
+            mass, trimming odd choices while preserving variety.
+          </p>
+          <input class="sx-range illustrative" id="sxTopP" type="range" min="0" max="1" step="0.01" value="0.95" />
+          <div class="sx-scale"><span>0</span><span>0.5</span><span>1.0</span></div>
+        </div>
+
+        <div class="sx-row illustrative">
+          <div class="sx-row-head">
+            <span class="sx-row-name">Top-K</span>
+            <span class="sx-row-val" id="sxTopKVal">40</span>
+          </div>
+          <p class="sx-row-desc">
+            Restricts sampling to the <b>K</b> highest-probability tokens at each step. Smaller K is safer and
+            more focused; larger K admits more of the long tail. Often combined with top-P. <b>0</b> disables the
+            limit.
+          </p>
+          <input class="sx-range illustrative" id="sxTopK" type="range" min="0" max="100" step="1" value="40" />
+          <div class="sx-scale"><span>0 · off</span><span>50</span><span>100</span></div>
+        </div>
+      </div>
+
+      <div class="sx-foot">
+        <button class="sx-reset" id="sxReset" type="button">Reset defaults</button>
+        <button class="sx-done" id="sxDone" type="button" data-close>Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- landing background animation (WebGL / three.js) -->
   <script type="module" src="./landing.js"></script>
 
@@ -1131,6 +1415,26 @@
     const liveStat = $("liveStat");
     const kernelsBtn = $("kernelsBtn");
     const kernelsOverlay = $("kernelsOverlay");
+    const settingsBtn = $("settingsBtn");
+    const settingsOverlay = $("settingsOverlay");
+
+    // ---- Generation settings ----------------------------------------------------------------
+    // `maxNewTokens` is wired straight into model.generate(). The sampling fields (temperature,
+    // topP, topK) are educational only — this build decodes greedily (argmax), so they're surfaced
+    // to teach the concepts and persisted, but never sent to the engine.
+    const SETTINGS_DEFAULTS = { maxNewTokens: 1024, temperature: 1, topP: 0.95, topK: 40 };
+    const SETTINGS_KEY = "gemma4.genSettings";
+    let genSettings = loadSettings();
+
+    function loadSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+        return { ...SETTINGS_DEFAULTS, ...saved };
+      } catch { return { ...SETTINGS_DEFAULTS }; }
+    }
+    function saveSettings() {
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(genSettings)); } catch { /* storage blocked */ }
+    }
 
     let model = null;
     let kernels = [];
@@ -1161,7 +1465,20 @@
     kernelsOverlay.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeKernels(); });
     $("kxList").addEventListener("scroll", updateListFade, { passive: true });
     $("kxCopy").addEventListener("click", copyKernel);
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !kernelsOverlay.hidden) closeKernels(); });
+
+    settingsBtn.addEventListener("click", openSettings);
+    settingsOverlay.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeSettings(); });
+    $("sxReset").addEventListener("click", resetSettings);
+    bindSetting("sxMaxTokens", "sxMaxVal", "maxNewTokens", (v) => String(v));
+    bindSetting("sxTemp", "sxTempVal", "temperature", (v) => v.toFixed(2));
+    bindSetting("sxTopP", "sxTopPVal", "topP", (v) => v.toFixed(2));
+    bindSetting("sxTopK", "sxTopKVal", "topK", (v) => (v === 0 ? "off" : String(v)));
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (!settingsOverlay.hidden) closeSettings();
+      else if (!kernelsOverlay.hidden) closeKernels();
+    });
     $("toTop").addEventListener("click", (e) => { e.preventDefault(); landing.scrollIntoView({ behavior: "smooth" }); });
 
     input.addEventListener("input", () => { autoGrow(); refreshSend(); });
@@ -1373,6 +1690,50 @@
       } catch { /* clipboard blocked — ignore */ }
     }
 
+    // ---- Generation settings panel ----------------------------------------------------------
+    // Wire one range input to a value readout + a field on genSettings. `format` renders the live
+    // number; every change persists so the choice survives reloads.
+    function bindSetting(rangeId, valId, key, format) {
+      const range = $(rangeId);
+      const val = $(valId);
+      const apply = () => {
+        const n = Number(range.value);
+        genSettings[key] = n;
+        val.textContent = format(n);
+      };
+      range.addEventListener("input", () => { apply(); saveSettings(); });
+      apply(); // initialise the readout from the loaded value
+    }
+
+    // Push the current genSettings values back onto the inputs (used on open + reset).
+    function syncSettingsUI() {
+      const pairs = [
+        ["sxMaxTokens", "sxMaxVal", genSettings.maxNewTokens, (v) => String(v)],
+        ["sxTemp", "sxTempVal", genSettings.temperature, (v) => v.toFixed(2)],
+        ["sxTopP", "sxTopPVal", genSettings.topP, (v) => v.toFixed(2)],
+        ["sxTopK", "sxTopKVal", genSettings.topK, (v) => (v === 0 ? "off" : String(v))],
+      ];
+      for (const [rangeId, valId, value, format] of pairs) {
+        $(rangeId).value = value;
+        $(valId).textContent = format(Number(value));
+      }
+    }
+
+    function openSettings() {
+      syncSettingsUI();
+      settingsOverlay.hidden = false;
+      document.body.classList.add("kx-locked");
+    }
+    function closeSettings() {
+      settingsOverlay.hidden = true;
+      if (kernelsOverlay.hidden) document.body.classList.remove("kx-locked");
+    }
+    function resetSettings() {
+      genSettings = { ...SETTINGS_DEFAULTS };
+      saveSettings();
+      syncSettingsUI();
+    }
+
     const WGSL_KEYWORDS = new Set(["fn","let","var","const","const_assert","struct","if","else","for","loop","return","break","continue","switch","case","default","while","override","enable","requires","discard","alias","true","false","workgroup","storage","uniform","function","private","read","write","read_write","bitcast"]);
     const WGSL_TYPES = new Set(["u32","i32","f32","f16","bool","vec2","vec3","vec4","mat2x2","mat3x3","mat4x4","mat2x3","mat3x2","mat2x4","mat4x2","mat3x4","mat4x3","array","atomic","ptr","sampler"]);
     const WGSL_TOKEN = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(@[A-Za-z_]\w*)|([A-Za-z_]\w*)|(\d[\w.]*)|(\s+)|([\s\S])/g;
@@ -1419,7 +1780,7 @@
       let startedAt = 0, firstTokenAt = 0, endedAt = 0, generatedTokens = 0;
 
       try {
-        const stream = model.generate(messages, { maxNewTokens: 4096, signal: abortController.signal });
+        const stream = model.generate(messages, { maxNewTokens: genSettings.maxNewTokens, signal: abortController.signal });
         startedAt = performance.now();
         for await (const { text: full } of stream) {
           const now = performance.now();
