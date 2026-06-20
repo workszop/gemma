@@ -1437,9 +1437,9 @@
     const settingsOverlay = $("settingsOverlay");
 
     // ---- Generation settings ----------------------------------------------------------------
-    // `maxNewTokens` is wired straight into model.generate(). The sampling fields (temperature,
-    // topP, topK) are educational only — this build decodes greedily (argmax), so they're surfaced
-    // to teach the concepts and persisted, but never sent to the engine.
+    // `maxNewTokens` and `temperature` are wired into model.generate() (temperature drives real
+    // on-GPU Gumbel-max sampling; 0 = greedy). topP/topK remain educational only — they teach the
+    // concepts and persist, but aren't wired into this build's sampler.
     const SETTINGS_DEFAULTS = { maxNewTokens: 1024, temperature: 0, topP: 0.95, topK: 40 };
     const SETTINGS_KEY = "gemma4.genSettings.v2";
     let genSettings = loadSettings();
