@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="color-scheme" content="dark" />
+<meta name="color-scheme" content="light" />
 <title>Gemma 4 E2B · WebGPU</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡️</text></svg>">
 <meta name="description" content="Gemma 4 E2B (QAT Mobile) running fully in your browser on WebGPU. Every kernel written and optimized by Fable 5." />
@@ -20,19 +20,27 @@
 </script>
 <style>
   :root {
-    --bg: #020203;
-    --t1: rgba(255, 255, 255, 0.92);
-    --t2: rgba(255, 255, 255, 0.55);
-    --t3: rgba(255, 255, 255, 0.32);
-    --t4: rgba(255, 255, 255, 0.20);
-    --line: rgba(255, 255, 255, 0.08);
-    --line-soft: rgba(255, 255, 255, 0.06);
-    --panel: rgba(255, 255, 255, 0.03);
-    --panel-hover: rgba(255, 255, 255, 0.06);
-    --ok: #64ffa0;
-    --warn: #ffcd6b;
-    --danger: #ff7a6b;
-    --user-bubble: rgba(255, 255, 255, 0.065);
+    /* Light theme — high-contrast ink-on-paper, tuned for projector legibility. */
+    --bg: #f4f4f2;
+    --surface: #ffffff;
+    --ink: #16181d;                       /* strongest text / headings */
+    --t1: rgba(22, 24, 29, 0.92);
+    --t2: rgba(22, 24, 29, 0.62);
+    --t3: rgba(22, 24, 29, 0.44);
+    --t4: rgba(22, 24, 29, 0.28);
+    --line: rgba(22, 24, 29, 0.14);
+    --line-soft: rgba(22, 24, 29, 0.09);
+    --hover-line: rgba(22, 24, 29, 0.36);
+    --panel: rgba(22, 24, 29, 0.04);
+    --panel-hover: rgba(22, 24, 29, 0.08);
+    --ok: #12a05a;
+    --warn: #b07515;
+    --danger: #d2402f;
+    --user-bubble: rgba(22, 24, 29, 0.05);
+    --solid-bg: #16181d;                  /* inverted "solid" buttons */
+    --solid-fg: #ffffff;
+    --code-bg: #0d1117;                   /* code stays dark for syntax legibility */
+    --hero-fade-rgb: 244, 244, 242;       /* = --bg, for gradient/shadow alpha use */
 
     --display: "Instrument Serif", Georgia, "Times New Roman", serif;
     --body: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -62,7 +70,7 @@
   button { appearance: none; background: none; border: 0; cursor: pointer; }
   a { color: inherit; text-decoration: none; }
 
-  ::selection { background: rgba(255, 255, 255, 0.18); }
+  ::selection { background: rgba(22, 24, 29, 0.14); }
 
   body::-webkit-scrollbar { width: 0; }
 
@@ -94,7 +102,7 @@
     position: absolute;
     bottom: 0; left: 0;
     width: 100%; height: 68%;
-    background: linear-gradient(to top, var(--bg) 0%, var(--bg) 14%, rgba(2, 2, 3, 0.55) 52%, transparent 100%);
+    background: linear-gradient(to top, var(--bg) 0%, var(--bg) 22%, rgba(var(--hero-fade-rgb), 0.62) 55%, transparent 100%);
     z-index: 1;
     pointer-events: none;
     opacity: 0;
@@ -158,10 +166,10 @@
     font-weight: 400;
     line-height: 0.98;
     letter-spacing: -0.015em;
-    color: #fff;
+    color: var(--ink);
     margin-bottom: 30px;
     max-width: 26ch;
-    text-shadow: 0 3px 40px var(--bg), 0 1px 14px rgba(2, 2, 3, 0.85);
+    text-shadow: 0 2px 22px rgba(var(--hero-fade-rgb), 0.95), 0 1px 8px rgba(var(--hero-fade-rgb), 0.9);
   }
   .hero-h1 .thin { color: var(--t3); }
 
@@ -224,12 +232,12 @@
     align-items: center;
     gap: 10px;
     padding: 14px 28px;
-    color: #000;
+    color: var(--solid-fg);
     font-size: 13.5px;
     font-weight: 500;
     letter-spacing: 0.01em;
     border-radius: 100px;
-    border: 1px solid #fff;
+    border: 1px solid var(--solid-bg);
     white-space: nowrap;
     overflow: hidden;
     isolation: isolate;
@@ -239,7 +247,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: #fff;
+    background: var(--solid-bg);
     border-radius: inherit;
     transform: scaleX(1);
     transform-origin: left center;
@@ -247,7 +255,7 @@
     z-index: -1;
   }
   .btn-primary:hover:not(:disabled)::before { transform: scaleX(0); transform-origin: right center; }
-  .btn-primary:hover:not(:disabled) { color: #fff; }
+  .btn-primary:hover:not(:disabled) { color: var(--ink); }
   .btn-primary svg { width: 14px; height: 14px; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -264,7 +272,7 @@
     white-space: nowrap;
     transition: border-color 0.25s ease, color 0.25s ease;
   }
-  .btn-secondary:hover { border-color: rgba(255, 255, 255, 0.4); color: var(--t1); }
+  .btn-secondary:hover { border-color: var(--hover-line); color: var(--t1); }
   .btn-secondary svg { width: 12px; height: 12px; }
 
   /* kernel credit + experimental note, in the right column */
@@ -285,7 +293,7 @@
     transition: color 0.2s ease, border-color 0.2s ease;
   }
   .kernel-note-cta b { color: var(--t1); font-weight: 600; }
-  .kernel-note-cta:hover { color: var(--t1); border-color: rgba(255, 255, 255, 0.4); }
+  .kernel-note-cta:hover { color: var(--t1); border-color: var(--hover-line); }
   .hero-foot-note {
     font-family: var(--mono);
     font-size: 10px;
@@ -320,7 +328,7 @@
     position: absolute;
     top: -100%; left: 0;
     width: 100%; height: 100%;
-    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background: linear-gradient(to bottom, transparent, rgba(22, 24, 29, 0.38), transparent);
     animation: scrollDrop 2s ease-in-out infinite;
   }
 
@@ -333,7 +341,7 @@
     flex-direction: column;
     height: 100dvh;
     background:
-      radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.035), transparent 55%),
+      radial-gradient(circle at 50% -20%, rgba(22, 24, 29, 0.025), transparent 55%),
       var(--bg);
   }
 
@@ -341,7 +349,7 @@
     position: relative;
     flex: 0 0 auto;
     border-bottom: 1px solid var(--line-soft);
-    background: rgba(2, 2, 3, 0.72);
+    background: rgba(255, 255, 255, 0.78);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
@@ -402,11 +410,11 @@
     transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
   }
   .head-btn svg { width: 13px; height: 13px; }
-  .head-btn:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.35); color: var(--t1); }
+  .head-btn:hover:not(:disabled) { border-color: var(--hover-line); color: var(--t1); }
   .head-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .head-btn[hidden] { display: none; }
-  .head-btn.solid { background: #fff; color: #000; border-color: #fff; }
-  .head-btn.solid:hover:not(:disabled) { opacity: 0.85; color: #000; }
+  .head-btn.solid { background: var(--solid-bg); color: var(--solid-fg); border-color: var(--solid-bg); }
+  .head-btn.solid:hover:not(:disabled) { opacity: 0.85; color: var(--solid-fg); }
 
   /* Absolutely positioned over the header's bottom edge so it can never affect layout —
      no element shifts when loading starts or ends; the fill just fades out on completion. */
@@ -420,7 +428,7 @@
   .bar > div {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--t2), #fff);
+    background: linear-gradient(90deg, var(--t3), var(--ink));
     transition: opacity 0.4s ease; /* width is animated per-frame in JS (see stepProgressBar) */
   }
   .bar.done > div { opacity: 0; }
@@ -452,7 +460,7 @@
     font-size: clamp(30px, 6vw, 46px);
     font-weight: 400;
     line-height: 1.05;
-    color: #fff;
+    color: var(--ink);
     margin-bottom: 14px;
   }
   .welcome h2 .thin { color: var(--t3); }
@@ -467,7 +475,7 @@
     border-radius: 100px;
     transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
   }
-  .seed:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.3); color: var(--t1); background: var(--panel-hover); transform: translateY(-1px); }
+  .seed:hover:not(:disabled) { border-color: var(--hover-line); color: var(--t1); background: var(--panel-hover); transform: translateY(-1px); }
   .seed:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .msg { display: flex; flex-direction: column; animation: rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
@@ -503,13 +511,13 @@
   .bubble.assistant > :first-child { margin-top: 0; }
   .bubble.assistant > :last-child { margin-bottom: 0; }
   .bubble.assistant p { margin: 0 0 0.9em; }
-  .bubble.assistant strong { color: #fff; font-weight: 600; }
+  .bubble.assistant strong { color: var(--ink); font-weight: 600; }
   .bubble.assistant em { font-style: italic; }
-  .bubble.assistant a { color: #8ab4ff; text-decoration: underline; text-underline-offset: 2px; }
-  .bubble.assistant a:hover { color: #aecbff; }
+  .bubble.assistant a { color: #1d4ed8; text-decoration: underline; text-underline-offset: 2px; }
+  .bubble.assistant a:hover { color: #1e40af; }
   .bubble.assistant h1, .bubble.assistant h2, .bubble.assistant h3,
   .bubble.assistant h4, .bubble.assistant h5, .bubble.assistant h6 {
-    color: #fff; font-weight: 600; line-height: 1.25; margin: 1.3em 0 0.6em;
+    color: var(--ink); font-weight: 600; line-height: 1.25; margin: 1.3em 0 0.6em;
   }
   .bubble.assistant h1 { font-size: 1.5em; }
   .bubble.assistant h2 { font-size: 1.3em; }
@@ -534,12 +542,13 @@
   .bubble.assistant pre {
     margin: 0 0 0.9em;
     padding: 14px 16px;
-    background: #0a0a0c;
-    border: 1px solid var(--line);
+    background: var(--code-bg);
+    border: 1px solid rgba(22, 24, 29, 0.18);
     border-radius: 12px;
     overflow-x: auto;
+    color: #e6edf3;
   }
-  .bubble.assistant pre code { background: none; border: 0; padding: 0; font-size: 0.82em; line-height: 1.6; }
+  .bubble.assistant pre code { background: none; border: 0; padding: 0; font-size: 0.82em; line-height: 1.6; color: inherit; }
   .bubble.assistant table { border-collapse: collapse; margin: 0 0 0.9em; font-size: 0.92em; display: block; overflow-x: auto; }
   .bubble.assistant th, .bubble.assistant td { border: 1px solid var(--line); padding: 6px 11px; text-align: left; }
   .bubble.assistant th { background: var(--panel); color: var(--t1); font-weight: 600; }
@@ -563,7 +572,7 @@
 
   .composer-wrap {
     flex: 0 0 auto;
-    background: linear-gradient(rgba(2, 2, 3, 0), var(--bg) 30%);
+    background: linear-gradient(rgba(var(--hero-fade-rgb), 0), var(--bg) 30%);
     padding-top: 8px;
   }
   .composer { margin: 0 auto; max-width: var(--maxw); padding: 0 28px 22px; }
@@ -578,7 +587,7 @@
     padding: 8px 8px 8px 18px;
     transition: border-color 0.2s ease, background 0.2s ease;
   }
-  .field:focus-within { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.05); }
+  .field:focus-within { border-color: rgba(22, 24, 29, 0.3); background: rgba(22, 24, 29, 0.025); }
   textarea {
     background: transparent;
     border: 0;
@@ -603,7 +612,7 @@
   .icon-button svg { width: 19px; height: 19px; }
   .icon-button:active:not(:disabled) { transform: scale(0.94); }
   .icon-button:disabled { opacity: 0.3; cursor: not-allowed; }
-  .send-button { background: #fff; color: #000; }
+  .send-button { background: var(--solid-bg); color: var(--solid-fg); }
   .send-button:hover:not(:disabled) { opacity: 0.86; }
   .stop-button { background: rgba(255, 122, 107, 0.14); color: var(--danger); border: 1px solid rgba(255, 122, 107, 0.3); display: none; }
   .stop-button:hover:not(:disabled) { background: rgba(255, 122, 107, 0.22); }
@@ -625,7 +634,7 @@
   .thread-scroll::-webkit-scrollbar { width: 10px; }
   .thread-scroll::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid var(--bg); border-radius: 10px; }
 
-  :focus-visible { outline: 1px solid rgba(255, 255, 255, 0.45); outline-offset: 3px; }
+  :focus-visible { outline: 1px solid rgba(22, 24, 29, 0.5); outline-offset: 3px; }
   /* The composer already shows focus via .field:focus-within — suppress the textarea's own outline. */
   textarea:focus, textarea:focus-visible { outline: none; }
 
@@ -646,7 +655,7 @@
   .kx-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.62);
+    background: rgba(20, 22, 28, 0.42);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     animation: kxFade 0.25s ease;
@@ -657,11 +666,11 @@
     flex-direction: column;
     width: min(1080px, 100%);
     height: min(86vh, 920px);
-    background: #0a0a0c;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 30px 90px -30px rgba(0, 0, 0, 0.28);
     animation: kxRise 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .kx-head {
@@ -672,7 +681,7 @@
     padding: 20px 22px;
     border-bottom: 1px solid var(--line-soft);
   }
-  .kx-title h3 { font-family: var(--display); font-weight: 400; font-size: 26px; color: #fff; line-height: 1; }
+  .kx-title h3 { font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--ink); line-height: 1; }
   .kx-sub { display: block; margin-top: 7px; font-size: 12.5px; color: var(--t3); }
   .kx-close {
     display: grid;
@@ -684,7 +693,7 @@
     border: 1px solid var(--line);
     transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
   }
-  .kx-close:hover { color: var(--t1); border-color: rgba(255, 255, 255, 0.35); background: var(--panel); }
+  .kx-close:hover { color: var(--t1); border-color: var(--hover-line); background: var(--panel); }
   .kx-close svg { width: 15px; height: 15px; }
   .kx-body { flex: 1; display: grid; grid-template-columns: 236px 1fr; min-height: 0; }
   .kx-side {
@@ -707,7 +716,7 @@
     position: absolute;
     left: 0; right: 1px; bottom: 0;
     height: 54px;
-    background: linear-gradient(transparent, #0a0a0c 88%);
+    background: linear-gradient(transparent, var(--surface) 88%);
     pointer-events: none;
     opacity: 1;
     transition: opacity 0.25s ease;
@@ -728,7 +737,7 @@
     transition: background 0.15s ease, color 0.15s ease;
   }
   .kx-item:hover { background: var(--panel); color: var(--t1); }
-  .kx-item.active { background: var(--panel-hover); color: #fff; }
+  .kx-item.active { background: var(--panel-hover); color: var(--ink); }
   .kx-view { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
   .kx-view-head {
     display: flex;
@@ -752,7 +761,7 @@
     padding: 5px 13px;
     transition: color 0.2s ease, border-color 0.2s ease;
   }
-  .kx-copy:hover { color: var(--t1); border-color: rgba(255, 255, 255, 0.35); }
+  .kx-copy:hover { color: var(--t1); border-color: var(--hover-line); }
   .kx-code {
     flex: 1;
     min-height: 0;
@@ -763,7 +772,8 @@
     font-family: var(--mono);
     font-size: 12.5px;
     line-height: 1.65;
-    color: var(--t2);
+    background: var(--code-bg);
+    color: #c9d1d9;
     tab-size: 2;
   }
   .kx-code code { white-space: pre; }
@@ -812,7 +822,7 @@
     font-weight: 400;
     font-size: clamp(26px, 3vw, 34px);
     line-height: 1.12;
-    color: #fff;
+    color: var(--ink);
     margin-bottom: 16px;
   }
   .kx-intro-lead {
@@ -856,7 +866,7 @@
   }
 
   .kx-code::-webkit-scrollbar, .kx-list::-webkit-scrollbar { width: 10px; height: 10px; }
-  .kx-code::-webkit-scrollbar-thumb, .kx-list::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid #0a0a0c; border-radius: 10px; }
+  .kx-code::-webkit-scrollbar-thumb, .kx-list::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid var(--surface); border-radius: 10px; }
   /* while the overlay is open, lock the page behind it so only the overlay's panes scroll */
   body.kx-locked { overflow: hidden; }
   @keyframes kxFade { from { opacity: 0; } to { opacity: 1; } }
@@ -891,7 +901,7 @@
   .sx-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.62);
+    background: rgba(20, 22, 28, 0.42);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     animation: kxFade 0.25s ease;
@@ -902,11 +912,11 @@
     flex-direction: column;
     width: min(560px, 100%);
     max-height: min(88vh, 860px);
-    background: #0a0a0c;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 30px 90px -30px rgba(0, 0, 0, 0.28);
     animation: kxRise 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .sx-head {
@@ -917,7 +927,7 @@
     padding: 20px 22px 18px;
     border-bottom: 1px solid var(--line-soft);
   }
-  .sx-title h3 { font-family: var(--display); font-weight: 400; font-size: 26px; color: #fff; line-height: 1; }
+  .sx-title h3 { font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--ink); line-height: 1; }
   .sx-sub { display: block; margin-top: 7px; font-size: 12.5px; color: var(--t3); }
   .sx-body { overflow-y: auto; padding: 6px 22px 4px; }
 
@@ -975,7 +985,7 @@
   .sx-row-val {
     font-family: var(--mono);
     font-size: 13px;
-    color: #fff;
+    color: var(--ink);
     font-variant-numeric: tabular-nums;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -1002,18 +1012,18 @@
     appearance: none;
     width: 16px; height: 16px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--ink);
     border: 0;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.28);
     transition: transform 0.1s ease;
   }
   input[type="range"].sx-range::-webkit-slider-thumb:active { transform: scale(1.18); }
   input[type="range"].sx-range::-moz-range-thumb {
     width: 16px; height: 16px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--ink);
     border: 0;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.28);
   }
   .sx-range.illustrative { opacity: 0.85; }
   .sx-range.illustrative::-webkit-slider-thumb { background: var(--warn); }
@@ -1046,12 +1056,12 @@
     padding: 9px 16px;
     transition: color 0.2s ease, border-color 0.2s ease;
   }
-  .sx-reset:hover { color: var(--t1); border-color: rgba(255, 255, 255, 0.35); }
-  .sx-done { background: #fff; color: #000; border-radius: 100px; padding: 9px 22px; font-size: 13px; font-weight: 500; transition: opacity 0.2s ease; }
+  .sx-reset:hover { color: var(--t1); border-color: var(--hover-line); }
+  .sx-done { background: var(--solid-bg); color: var(--solid-fg); border-radius: 100px; padding: 9px 22px; font-size: 13px; font-weight: 500; transition: opacity 0.2s ease; }
   .sx-done:hover { opacity: 0.86; }
 
   .sx-body::-webkit-scrollbar { width: 10px; }
-  .sx-body::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid #0a0a0c; border-radius: 10px; }
+  .sx-body::-webkit-scrollbar-thumb { background: var(--line); border: 3px solid var(--surface); border-radius: 10px; }
 
   @media (max-width: 760px) {
     .sx { padding: 0; }

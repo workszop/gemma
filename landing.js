@@ -34,7 +34,7 @@ let quality = { ...qualityPresets[currentTier] };
 
 // ============ SETTINGS ============
 const settings = {
-  dither: { enabled: true, dotSize: quality.dotSize, dotGap: quality.dotGap, brightness: 0.85, contrast: 0.60, threshold: 0.03, dotColor: [1.0, 1.0, 1.0], bgColor: [0.00784, 0.00784, 0.01176] },
+  dither: { enabled: true, dotSize: quality.dotSize, dotGap: quality.dotGap, brightness: 0.85, contrast: 0.60, threshold: 0.03, dotColor: [0.09, 0.10, 0.13], bgColor: [0.957, 0.957, 0.949] },
   crosshatch: { enabled: false, intensity: 0.95, angle: 0.4363 },
   bloom: { enabled: quality.bloomEnabled, intensity: 0.55, size: 1.50 },
   crt: { enabled: true, curvature: 0.0, scanlines: quality.scanlines, vignette: 2.00, chroma: 0.0 },
@@ -54,7 +54,7 @@ const mouseDamping = 0.15;
 
 // ============ THREE.JS SETUP ============
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x020203);
+scene.background = new THREE.Color(0xf4f4f2);
 
 const crtFrame = document.getElementById('crt-frame');
 const getSize = () => {
@@ -339,8 +339,8 @@ const DotMatrixShader = {
     uBrightness: { value: 0.85 },
     uContrast: { value: 0.60 },
     uThreshold: { value: 0.03 },
-    uDotColor: { value: new THREE.Vector3(1.0, 1.0, 1.0) },
-    uBgColor: { value: new THREE.Vector3(0.00784, 0.00784, 0.01176) },
+    uDotColor: { value: new THREE.Vector3(0.09, 0.10, 0.13) },
+    uBgColor: { value: new THREE.Vector3(0.957, 0.957, 0.949) },
     uCrossEnabled: { value: 0.0 },
     uCrossIntensity: { value: 0.95 },
     uCrossAngle: { value: 0.4363 },
