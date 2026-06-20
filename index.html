@@ -1466,8 +1466,8 @@
       setStatus("error", msg);
     }
 
-    loadBtn.addEventListener("click", loadModel);
-    headLoadBtn.addEventListener("click", loadModel);
+    loadBtn.addEventListener("click", () => loadModel());
+    headLoadBtn.addEventListener("click", () => loadModel());
     sendBtn.addEventListener("click", send);
     stopBtn.addEventListener("click", () => abortController?.abort());
     clearBtn.addEventListener("click", clearChat);
@@ -1507,7 +1507,7 @@
       if (text !== undefined) statusText.innerHTML = text;
     }
 
-    async function loadModel() {
+    async function loadModel(opts = {}) {
       if (model || isLoading) return;
       isLoading = true;
       loadBtn.disabled = true;
@@ -1515,14 +1515,16 @@
       loadBtnLabel.textContent = "Loading…";
       bar.classList.remove("done");
       setProgressImmediate(0.02);
-      setStatus("loading", "Requesting WebGPU device…");
+      setStatus("loading", opts.force ? "Re-downloading weights…" : "Requesting WebGPU device…");
 
       // Move the visitor down into the chat where progress + conversation live.
       chat.scrollIntoView({ behavior: "smooth" });
 
       const started = performance.now();
       try {
-        model = await Gemma4Mobile.load(null, { onProgress: updateLoadProgress });
+        // `force` bypasses the local cache read (used on retry) so a corrupted cached entry can't
+        // strand the loader — the weights are fetched fresh and the bad entry is overwritten.
+        model = await Gemma4Mobile.load(null, { onProgress: updateLoadProgress, force: opts.force });
         setStatus("loading", "Warming up kernels…");
         await model.warmup();
 
@@ -1535,6 +1537,17 @@
         enableChat();
       } catch (error) {
         console.error(error);
+
+        // A corrupted local cache — often left by an interrupted earlier download — surfaces as a
+        // NotReadableError when the browser reads the cached weights back. Clear it and retry once
+        // with a forced fresh download so the user doesn't have to dig through DevTools.
+        if (!opts.retried && isCacheReadError(error)) {
+          setStatus("loading", "Cached weights are corrupted — clearing and re-downloading…");
+          await clearModelCache();
+          isLoading = false; // allow the retry to re-enter
+          return loadModel({ force: true, retried: true });
+        }
+
         setStatus("error", `Failed to load: ${escapeHtml(String(error?.message ?? error))}`);
         bar.classList.add("done");
         loadBtn.disabled = false;
@@ -1542,6 +1555,39 @@
         loadBtnLabel.textContent = "Load model";
         isLoading = false;
       }
+    }
+
+    // True for the storage-read failures that indicate a corrupt/evicted cached weight blob.
+    function isCacheReadError(error) {
+      const name = error?.name || "";
+      const msg = String(error?.message ?? error);
+      return name === "NotReadableError" || /could not be read|NotReadableError|NotFoundError/i.test(msg);
+    }
+
+    // Best-effort wipe of this origin's model cache (Cache Storage + IndexedDB) so the next load
+    // re-downloads from scratch. Each step is guarded — a blocked DB delete must never hang the load.
+    async function clearModelCache() {
+      try {
+        if (window.caches?.keys) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+      } catch { /* ignore — cache may be unavailable */ }
+      try {
+        if (indexedDB?.databases) {
+          const dbs = await indexedDB.databases();
+          await Promise.all((dbs || []).map((db) => (db?.name ? deleteDatabase(db.name) : null)));
+        }
+      } catch { /* ignore — databases() unsupported (e.g. Firefox) */ }
+    }
+
+    function deleteDatabase(name) {
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.deleteDatabase(name);
+          req.onsuccess = req.onerror = req.onblocked = () => resolve();
+        } catch { resolve(); }
+      });
     }
 
     function labelFor(status) {
