@@ -576,6 +576,74 @@
     padding-top: 8px;
   }
   .composer { margin: 0 auto; max-width: var(--maxw); padding: 0 28px 22px; }
+
+  /* always-visible generation controls, sitting just above the input */
+  .quick-controls {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin: 0 4px 10px;
+    padding: 9px 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .qc { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .qc-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--t2);
+    white-space: nowrap;
+  }
+  .qc-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 118px;
+    height: 4px;
+    border-radius: 100px;
+    background: var(--line);
+    outline: none;
+    cursor: pointer;
+  }
+  .qc-range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--ink); border: 0; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.28);
+  }
+  .qc-range::-moz-range-thumb {
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--ink); border: 0; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.28);
+  }
+  .qc-val {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    min-width: 38px;
+    text-align: right;
+  }
+  .qc-more {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--t2);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 5px 12px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .qc-more:hover { color: var(--t1); border-color: var(--hover-line); }
+
+  @media (max-width: 760px) {
+    .quick-controls { gap: 12px; padding: 8px 10px; }
+    .qc-range { width: 86px; }
+    .qc-label { font-size: 9.5px; }
+  }
   .field {
     display: grid;
     grid-template-columns: 1fr 44px;
@@ -1194,6 +1262,7 @@
             Settings
           </button>
           <button class="head-btn" id="clearBtn" type="button" disabled>Clear</button>
+          <button class="head-btn" id="resetCacheBtn" type="button" title="Wipe the cached model and reload (fixes a stuck or corrupted download)">Reset cache</button>
         </div>
       </div>
       <div class="bar" id="bar"><div></div></div>
@@ -1215,6 +1284,19 @@
 
     <footer class="composer-wrap">
       <div class="composer">
+        <div class="quick-controls" aria-label="Generation controls">
+          <div class="qc">
+            <span class="qc-label">Temp</span>
+            <input class="qc-range" data-setting="temperature" type="range" min="0" max="2" step="0.05" value="0" aria-label="Temperature" />
+            <span class="qc-val" data-setting-val="temperature">0.00</span>
+          </div>
+          <div class="qc">
+            <span class="qc-label">Max tokens</span>
+            <input class="qc-range" data-setting="maxNewTokens" type="range" min="64" max="4096" step="64" value="1024" aria-label="Max new tokens" />
+            <span class="qc-val" data-setting-val="maxNewTokens">1024</span>
+          </div>
+          <button class="qc-more" id="qcMore" type="button" title="More settings">More</button>
+        </div>
         <div class="field">
           <textarea id="input" rows="1" placeholder="Load the model to start chatting..." disabled></textarea>
           <button class="icon-button send-button" id="sendBtn" type="button" disabled aria-label="Send message">
@@ -1301,14 +1383,14 @@
         <div class="sx-row">
           <div class="sx-row-head">
             <span class="sx-row-name">Max new tokens</span>
-            <span class="sx-row-val" id="sxMaxVal">1024</span>
+            <span class="sx-row-val" id="sxMaxVal" data-setting-val="maxNewTokens">1024</span>
           </div>
           <p class="sx-row-desc">
             The longest reply the model may generate, measured in <b>tokens</b> (≈ ¾ of a word each).
             Generation also stops early at an end-of-turn token. Lower values give shorter, faster answers;
             higher values allow long-form responses but take more time.
           </p>
-          <input class="sx-range" id="sxMaxTokens" type="range" min="64" max="4096" step="64" value="1024" />
+          <input class="sx-range" id="sxMaxTokens" data-setting="maxNewTokens" type="range" min="64" max="4096" step="64" value="1024" />
           <div class="sx-scale"><span>64</span><span>2048</span><span>4096</span></div>
         </div>
 
@@ -1316,7 +1398,7 @@
         <div class="sx-row">
           <div class="sx-row-head">
             <span class="sx-row-name">Temperature</span>
-            <span class="sx-row-val" id="sxTempVal">0.00</span>
+            <span class="sx-row-val" id="sxTempVal" data-setting-val="temperature">0.00</span>
           </div>
           <p class="sx-row-desc">
             Real sampling. <b>0</b> = greedy / deterministic (always the top token). Higher values flatten
@@ -1324,7 +1406,7 @@
             <b>&gt;1.5</b> gets wild. Done on-GPU via the Gumbel-max trick (<code>argmax(logits/T + noise)</code>),
             so there's no speed penalty.
           </p>
-          <input class="sx-range" id="sxTemp" type="range" min="0" max="2" step="0.05" value="0" />
+          <input class="sx-range" id="sxTemp" data-setting="temperature" type="range" min="0" max="2" step="0.05" value="0" />
           <div class="sx-scale"><span>0 · greedy</span><span>1.0</span><span>2.0 · wild</span></div>
         </div>
 
@@ -1350,28 +1432,28 @@
         <div class="sx-row illustrative">
           <div class="sx-row-head">
             <span class="sx-row-name">Top-P (nucleus)</span>
-            <span class="sx-row-val" id="sxTopPVal">0.95</span>
+            <span class="sx-row-val" id="sxTopPVal" data-setting-val="topP">0.95</span>
           </div>
           <p class="sx-row-desc">
             Samples only from the smallest set of tokens whose probabilities sum to <b>P</b>, discarding the
             unlikely tail. <b>1.0</b> considers every token; <b>0.9</b> keeps just the most probable ~90% of the
             mass, trimming odd choices while preserving variety.
           </p>
-          <input class="sx-range illustrative" id="sxTopP" type="range" min="0" max="1" step="0.01" value="0.95" />
+          <input class="sx-range illustrative" id="sxTopP" data-setting="topP" type="range" min="0" max="1" step="0.01" value="0.95" />
           <div class="sx-scale"><span>0</span><span>0.5</span><span>1.0</span></div>
         </div>
 
         <div class="sx-row illustrative">
           <div class="sx-row-head">
             <span class="sx-row-name">Top-K</span>
-            <span class="sx-row-val" id="sxTopKVal">40</span>
+            <span class="sx-row-val" id="sxTopKVal" data-setting-val="topK">40</span>
           </div>
           <p class="sx-row-desc">
             Restricts sampling to the <b>K</b> highest-probability tokens at each step. Smaller K is safer and
             more focused; larger K admits more of the long tail. Often combined with top-P. <b>0</b> disables the
             limit.
           </p>
-          <input class="sx-range illustrative" id="sxTopK" type="range" min="0" max="100" step="1" value="40" />
+          <input class="sx-range illustrative" id="sxTopK" data-setting="topK" type="range" min="0" max="100" step="1" value="40" />
           <div class="sx-scale"><span>0 · off</span><span>50</span><span>100</span></div>
         </div>
       </div>
@@ -1474,6 +1556,19 @@
       setStatus("error", msg);
     }
 
+    // The weights are multi-GB. Ask for persistent storage so the browser doesn't evict the cached
+    // model under storage pressure — eviction is the usual reason a "cached" model re-downloads every
+    // visit. Best-effort: ignored where unsupported or denied.
+    navigator.storage?.persist?.().catch(() => {});
+
+    // If a previous session flagged the cache as corrupt, wipe it now — before any model load opens an
+    // IndexedDB connection, so the delete can't be blocked. Then carry on with a clean slate.
+    const CACHE_FLAG = "gemma4.clearCacheOnLoad";
+    if (localStorage.getItem(CACHE_FLAG)) {
+      try { localStorage.removeItem(CACHE_FLAG); } catch { /* ignore */ }
+      await clearModelCache();
+    }
+
     loadBtn.addEventListener("click", () => loadModel());
     headLoadBtn.addEventListener("click", () => loadModel());
     sendBtn.addEventListener("click", send);
@@ -1487,10 +1582,14 @@
     settingsBtn.addEventListener("click", openSettings);
     settingsOverlay.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeSettings(); });
     $("sxReset").addEventListener("click", resetSettings);
-    bindSetting("sxMaxTokens", "sxMaxVal", "maxNewTokens", (v) => String(v));
-    bindSetting("sxTemp", "sxTempVal", "temperature", (v) => v.toFixed(2));
-    bindSetting("sxTopP", "sxTopPVal", "topP", (v) => v.toFixed(2));
-    bindSetting("sxTopK", "sxTopKVal", "topK", (v) => (v === 0 ? "off" : String(v)));
+    $("qcMore").addEventListener("click", openSettings);
+    $("resetCacheBtn").addEventListener("click", () => {
+      // Flag the cache for wiping, then reload — the wipe runs at startup (above) with no open DB
+      // connection, which is the only reliable way to clear a model cache that's mid-use.
+      try { localStorage.setItem(CACHE_FLAG, "1"); } catch { /* ignore */ }
+      location.reload();
+    });
+    wireControls();
 
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
@@ -1537,6 +1636,7 @@
         await model.warmup();
 
         const seconds = ((performance.now() - started) / 1000).toFixed(1);
+        try { sessionStorage.removeItem("gemma4.cacheReloaded"); } catch { /* ignore */ }
         setStatus("ready", `Ready in <strong>${seconds}s</strong> · on-device`);
         setProgressImmediate(1);
         bar.classList.add("done");
@@ -1546,17 +1646,27 @@
       } catch (error) {
         console.error(error);
 
-        // A corrupted local cache — often left by an interrupted earlier download — surfaces as a
-        // NotReadableError when the browser reads the cached weights back. Clear it and retry once
-        // with a forced fresh download so the user doesn't have to dig through DevTools.
-        if (!opts.retried && isCacheReadError(error)) {
-          setStatus("loading", "Cached weights are corrupted — clearing and re-downloading…");
-          await clearModelCache();
-          isLoading = false; // allow the retry to re-enter
-          return loadModel({ force: true, retried: true });
+        // A corrupted/evicted cached weight blob surfaces as a NotReadableError when the browser
+        // reads it back. Recover in two escalating steps:
+        if (isCacheReadError(error)) {
+          // 1) Retry once with `force`, which skips the cache read entirely and re-downloads, then
+          //    overwrites the bad entry. No reload, no DevTools.
+          if (!opts.retried) {
+            setStatus("loading", "Cache problem detected — re-downloading fresh…");
+            isLoading = false; // allow the retry to re-enter
+            return loadModel({ force: true, retried: true });
+          }
+          // 2) If even the forced download tripped the cache, do a clean wipe-on-reload (the only
+          //    reliable way to delete a DB that's mid-use). Guarded so it can't loop.
+          if (!sessionStorage.getItem("gemma4.cacheReloaded")) {
+            try { sessionStorage.setItem("gemma4.cacheReloaded", "1"); localStorage.setItem(CACHE_FLAG, "1"); } catch { /* ignore */ }
+            setStatus("loading", "Clearing corrupted cache and reloading…");
+            location.reload();
+            return;
+          }
         }
 
-        setStatus("error", `Failed to load: ${escapeHtml(String(error?.message ?? error))}`);
+        setStatus("error", `Failed to load: ${escapeHtml(String(error?.message ?? error))} — try the “Reset cache” button.`);
         bar.classList.add("done");
         loadBtn.disabled = false;
         headLoadBtn.disabled = false;
@@ -1565,11 +1675,12 @@
       }
     }
 
-    // True for the storage-read failures that indicate a corrupt/evicted cached weight blob.
+    // True for the storage-read failure that indicates a corrupt/evicted cached weight blob. Kept
+    // narrow (the specific DOMException) so unrelated load errors aren't mistaken for cache trouble.
     function isCacheReadError(error) {
       const name = error?.name || "";
       const msg = String(error?.message ?? error);
-      return name === "NotReadableError" || /could not be read|NotReadableError|NotFoundError/i.test(msg);
+      return name === "NotReadableError" || /\bNotReadableError\b|could not be read/i.test(msg);
     }
 
     // Best-effort wipe of this origin's model cache (Cache Storage + IndexedDB) so the next load
@@ -1757,34 +1868,38 @@
     // ---- Generation settings panel ----------------------------------------------------------
     // Wire one range input to a value readout + a field on genSettings. `format` renders the live
     // number; every change persists so the choice survives reloads.
-    function bindSetting(rangeId, valId, key, format) {
-      const range = $(rangeId);
-      const val = $(valId);
-      const apply = () => {
-        const n = Number(range.value);
-        genSettings[key] = n;
-        val.textContent = format(n);
-      };
-      range.addEventListener("input", () => { apply(); saveSettings(); });
-      apply(); // initialise the readout from the loaded value
-    }
+    const CONTROL_FMT = {
+      maxNewTokens: (v) => String(v),
+      temperature: (v) => v.toFixed(2),
+      topP: (v) => v.toFixed(2),
+      topK: (v) => (v === 0 ? "off" : String(v)),
+    };
 
-    // Push the current genSettings values back onto the inputs (used on open + reset).
-    function syncSettingsUI() {
-      const pairs = [
-        ["sxMaxTokens", "sxMaxVal", genSettings.maxNewTokens, (v) => String(v)],
-        ["sxTemp", "sxTempVal", genSettings.temperature, (v) => v.toFixed(2)],
-        ["sxTopP", "sxTopPVal", genSettings.topP, (v) => v.toFixed(2)],
-        ["sxTopK", "sxTopKVal", genSettings.topK, (v) => (v === 0 ? "off" : String(v))],
-      ];
-      for (const [rangeId, valId, value, format] of pairs) {
-        $(rangeId).value = value;
-        $(valId).textContent = format(Number(value));
+    // Every range carries data-setting="<key>"; every readout data-setting-val="<key>". Editing any
+    // control — the always-visible strip by the composer or the Settings modal — updates genSettings,
+    // persists, and mirrors to the other copies so all views stay in lockstep.
+    function wireControls() {
+      document.querySelectorAll("[data-setting]").forEach((range) => {
+        range.addEventListener("input", () => applySetting(range.dataset.setting, Number(range.value)));
+      });
+      syncControls();
+    }
+    function applySetting(key, value) {
+      if (!(key in CONTROL_FMT)) return;
+      genSettings[key] = value;
+      saveSettings();
+      syncControls();
+    }
+    function syncControls() {
+      for (const key in CONTROL_FMT) {
+        const text = CONTROL_FMT[key](Number(genSettings[key]));
+        document.querySelectorAll(`[data-setting="${key}"]`).forEach((r) => { if (r.value !== String(genSettings[key])) r.value = genSettings[key]; });
+        document.querySelectorAll(`[data-setting-val="${key}"]`).forEach((el) => { el.textContent = text; });
       }
     }
 
     function openSettings() {
-      syncSettingsUI();
+      syncControls();
       settingsOverlay.hidden = false;
       document.body.classList.add("kx-locked");
     }
@@ -1795,7 +1910,7 @@
     function resetSettings() {
       genSettings = { ...SETTINGS_DEFAULTS };
       saveSettings();
-      syncSettingsUI();
+      syncControls();
     }
 
     const WGSL_KEYWORDS = new Set(["fn","let","var","const","const_assert","struct","if","else","for","loop","return","break","continue","switch","case","default","while","override","enable","requires","discard","alias","true","false","workgroup","storage","uniform","function","private","read","write","read_write","bitcast"]);
