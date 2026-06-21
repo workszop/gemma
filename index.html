@@ -1523,6 +1523,14 @@
     // on-GPU Gumbel-max sampling; 0 = greedy). topP/topK remain educational only — they teach the
     // concepts and persist, but aren't wired into this build's sampler.
     const SETTINGS_DEFAULTS = { maxNewTokens: 1024, temperature: 0, topP: 0.95, topK: 40 };
+    // Per-setting readout formatters. Declared up here (not beside wireControls) because
+    // wireControls() runs during init, before that function block would be evaluated.
+    const CONTROL_FMT = {
+      maxNewTokens: (v) => String(v),
+      temperature: (v) => v.toFixed(2),
+      topP: (v) => v.toFixed(2),
+      topK: (v) => (v === 0 ? "off" : String(v)),
+    };
     const SETTINGS_KEY = "gemma4.genSettings.v2";
     let genSettings = loadSettings();
 
@@ -1866,15 +1874,6 @@
     }
 
     // ---- Generation settings panel ----------------------------------------------------------
-    // Wire one range input to a value readout + a field on genSettings. `format` renders the live
-    // number; every change persists so the choice survives reloads.
-    const CONTROL_FMT = {
-      maxNewTokens: (v) => String(v),
-      temperature: (v) => v.toFixed(2),
-      topP: (v) => v.toFixed(2),
-      topK: (v) => (v === 0 ? "off" : String(v)),
-    };
-
     // Every range carries data-setting="<key>"; every readout data-setting-val="<key>". Editing any
     // control — the always-visible strip by the composer or the Settings modal — updates genSettings,
     // persists, and mirrors to the other copies so all views stay in lockstep.
