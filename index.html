@@ -1209,7 +1209,7 @@
           <div class="hero-main">
             <p class="hero-sub">
               <b>Gemma&nbsp;4 E2B (QAT Mobile)</b> — a powerful open-source model — runs
-              fully on-device with WebGPU. Weights cache locally after the first load, and nothing you
+              fully on-device with WebGPU. The weights download fresh each session, and nothing you
               type ever leaves your machine.
             </p>
             <div class="hero-stats">
@@ -1262,7 +1262,6 @@
             Settings
           </button>
           <button class="head-btn" id="clearBtn" type="button" disabled>Clear</button>
-          <button class="head-btn" id="resetCacheBtn" type="button" title="Wipe the cached model and reload (fixes a stuck or corrupted download)">Reset cache</button>
         </div>
       </div>
       <div class="bar" id="bar"><div></div></div>
@@ -1564,18 +1563,10 @@
       setStatus("error", msg);
     }
 
-    // The weights are multi-GB. Ask for persistent storage so the browser doesn't evict the cached
-    // model under storage pressure — eviction is the usual reason a "cached" model re-downloads every
-    // visit. Best-effort: ignored where unsupported or denied.
-    navigator.storage?.persist?.().catch(() => {});
-
-    // If a previous session flagged the cache as corrupt, wipe it now — before any model load opens an
-    // IndexedDB connection, so the delete can't be blocked. Then carry on with a clean slate.
-    const CACHE_FLAG = "gemma4.clearCacheOnLoad";
-    if (localStorage.getItem(CACHE_FLAG)) {
-      try { localStorage.removeItem(CACHE_FLAG); } catch { /* ignore */ }
-      await clearModelCache();
-    }
+    // Caching is disabled (cache:false on load) — corrupt/evicted cache entries kept stranding the
+    // loader, so we always fetch fresh. Reclaim any weights left in storage by earlier cached builds:
+    // one-time, best-effort, fire-and-forget, and a no-op once empty.
+    clearModelCache().catch(() => {});
 
     loadBtn.addEventListener("click", () => loadModel());
     headLoadBtn.addEventListener("click", () => loadModel());
@@ -1591,12 +1582,6 @@
     settingsOverlay.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeSettings(); });
     $("sxReset").addEventListener("click", resetSettings);
     $("qcMore").addEventListener("click", openSettings);
-    $("resetCacheBtn").addEventListener("click", () => {
-      // Flag the cache for wiping, then reload — the wipe runs at startup (above) with no open DB
-      // connection, which is the only reliable way to clear a model cache that's mid-use.
-      try { localStorage.setItem(CACHE_FLAG, "1"); } catch { /* ignore */ }
-      location.reload();
-    });
     wireControls();
 
     document.addEventListener("keydown", (e) => {
@@ -1622,7 +1607,7 @@
       if (text !== undefined) statusText.innerHTML = text;
     }
 
-    async function loadModel(opts = {}) {
+    async function loadModel() {
       if (model || isLoading) return;
       isLoading = true;
       loadBtn.disabled = true;
@@ -1630,21 +1615,20 @@
       loadBtnLabel.textContent = "Loading…";
       bar.classList.remove("done");
       setProgressImmediate(0.02);
-      setStatus("loading", opts.force ? "Re-downloading weights…" : "Requesting WebGPU device…");
+      setStatus("loading", "Requesting WebGPU device…");
 
       // Move the visitor down into the chat where progress + conversation live.
       chat.scrollIntoView({ behavior: "smooth" });
 
       const started = performance.now();
       try {
-        // `force` bypasses the local cache read (used on retry) so a corrupted cached entry can't
-        // strand the loader — the weights are fetched fresh and the bad entry is overwritten.
-        model = await Gemma4Mobile.load(null, { onProgress: updateLoadProgress, force: opts.force });
+        // cache:false — never read or write the local weight cache. Slower (re-downloads each load)
+        // but reliable: a corrupt/evicted cached blob can't strand the loader.
+        model = await Gemma4Mobile.load(null, { onProgress: updateLoadProgress, cache: false });
         setStatus("loading", "Warming up kernels…");
         await model.warmup();
 
         const seconds = ((performance.now() - started) / 1000).toFixed(1);
-        try { sessionStorage.removeItem("gemma4.cacheReloaded"); } catch { /* ignore */ }
         setStatus("ready", `Ready in <strong>${seconds}s</strong> · on-device`);
         setProgressImmediate(1);
         bar.classList.add("done");
@@ -1653,28 +1637,7 @@
         enableChat();
       } catch (error) {
         console.error(error);
-
-        // A corrupted/evicted cached weight blob surfaces as a NotReadableError when the browser
-        // reads it back. Recover in two escalating steps:
-        if (isCacheReadError(error)) {
-          // 1) Retry once with `force`, which skips the cache read entirely and re-downloads, then
-          //    overwrites the bad entry. No reload, no DevTools.
-          if (!opts.retried) {
-            setStatus("loading", "Cache problem detected — re-downloading fresh…");
-            isLoading = false; // allow the retry to re-enter
-            return loadModel({ force: true, retried: true });
-          }
-          // 2) If even the forced download tripped the cache, do a clean wipe-on-reload (the only
-          //    reliable way to delete a DB that's mid-use). Guarded so it can't loop.
-          if (!sessionStorage.getItem("gemma4.cacheReloaded")) {
-            try { sessionStorage.setItem("gemma4.cacheReloaded", "1"); localStorage.setItem(CACHE_FLAG, "1"); } catch { /* ignore */ }
-            setStatus("loading", "Clearing corrupted cache and reloading…");
-            location.reload();
-            return;
-          }
-        }
-
-        setStatus("error", `Failed to load: ${escapeHtml(String(error?.message ?? error))} — try the “Reset cache” button.`);
+        setStatus("error", `Failed to load: ${escapeHtml(String(error?.message ?? error))}`);
         bar.classList.add("done");
         loadBtn.disabled = false;
         headLoadBtn.disabled = false;
@@ -1683,16 +1646,8 @@
       }
     }
 
-    // True for the storage-read failure that indicates a corrupt/evicted cached weight blob. Kept
-    // narrow (the specific DOMException) so unrelated load errors aren't mistaken for cache trouble.
-    function isCacheReadError(error) {
-      const name = error?.name || "";
-      const msg = String(error?.message ?? error);
-      return name === "NotReadableError" || /\bNotReadableError\b|could not be read/i.test(msg);
-    }
-
-    // Best-effort wipe of this origin's model cache (Cache Storage + IndexedDB) so the next load
-    // re-downloads from scratch. Each step is guarded — a blocked DB delete must never hang the load.
+    // One-time best-effort wipe of any model weights left in storage by earlier cached builds (Cache
+    // Storage + IndexedDB), to reclaim disk. Each step is guarded so it can never hang startup.
     async function clearModelCache() {
       try {
         if (window.caches?.keys) {
